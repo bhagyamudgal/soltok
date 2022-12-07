@@ -8,14 +8,7 @@ import {
 	Text,
 	VStack,
 } from "@chakra-ui/react";
-import {
-	ChangeEvent,
-	FormEvent,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
+import { ChangeEvent, FormEvent, useMemo, useState } from "react";
 import { showInfoToast } from "../ToastNotification";
 import { TokenListProvider, TokenInfo } from "@solana/spl-token-registry";
 import { useRecoilValue } from "recoil";
@@ -36,6 +29,7 @@ const TokenAvailability = () => {
 	const [currentItem, setCurrentItem] = useState(0);
 
 	const resetStates = () => {
+		setCurrentItem(0);
 		setSimilarTokens(null);
 		setTokenAlreadyExist(null);
 	};
