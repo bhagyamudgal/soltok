@@ -4,7 +4,10 @@ import {
 	Center,
 	HStack,
 	Input,
+	Radio,
+	RadioGroup,
 	Spinner,
+	Stack,
 	Text,
 	VStack,
 } from "@chakra-ui/react";
@@ -17,7 +20,8 @@ import { convertToLowerCase } from "../../utils/general";
 import TokenCard from "../TokenCard";
 
 const TokenAvailability = () => {
-	const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
+	const [isFindingToken, setIsFindingToken] = useState(false);
+	const [radioValue, setRadioValue] = useState("legacy");
 	const [isFetchedResult, setIsFetchedResult] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
 	const [similarTokens, setSimilarTokens] = useState<TokenInfo[] | null>(
@@ -50,10 +54,81 @@ const TokenAvailability = () => {
 		}
 	};
 
+	const handleLegacySearch = async (tokenName: string) => {
+		const tokenListProvider = new TokenListProvider();
+
+		const tokens = await tokenListProvider.resolve();
+
+		const tokensFilteredByNetwork = tokens
+			.filterByClusterSlug(solanaNetwork)
+			.getList();
+
+		const similarTokens: TokenInfo[] = [];
+
+		tokensFilteredByNetwork.forEach((token) => {
+			if (
+				convertToLowerCase(token.name) === tokenName ||
+				convertToLowerCase(token.symbol) === tokenName
+			) {
+				setTokenAlreadyExist(token);
+			} else if (
+				convertToLowerCase(token.name).includes(tokenName) ||
+				convertToLowerCase(token.symbol).includes(tokenName)
+			) {
+				similarTokens.push(token);
+			}
+		});
+
+		if (similarTokens.length > 0) {
+			setSimilarTokens(similarTokens);
+		}
+	};
+
+	const handleTopSearch = async (tokenName: string) => {
+		const apiUrl =
+			"https://api.coingecko.com/api/v3/coins/list?include_platform=true";
+
+		const response = await fetch(apiUrl);
+
+		if (!response.ok) {
+			throw new Error("api response not found!");
+		}
+
+		const result = await response.json();
+
+		const tokensFilteredByNetwork = result.filter((token: any) => {
+			const isSolanaToken = token?.platforms?.solana;
+
+			if (isSolanaToken) {
+				return token;
+			}
+		});
+
+		const similarTokens: TokenInfo[] = [];
+
+		tokensFilteredByNetwork.forEach((token: any) => {
+			if (
+				convertToLowerCase(token.name) === tokenName ||
+				convertToLowerCase(token.symbol) === tokenName
+			) {
+				setTokenAlreadyExist(token);
+			} else if (
+				convertToLowerCase(token.name).includes(tokenName) ||
+				convertToLowerCase(token.symbol).includes(tokenName)
+			) {
+				similarTokens.push(token);
+			}
+		});
+
+		if (similarTokens.length > 0) {
+			setSimilarTokens(similarTokens);
+		}
+	};
+
 	const searchHandler = async (e: FormEvent) => {
 		e.preventDefault();
 
-		setIsCheckingAvailability(true);
+		setIsFindingToken(true);
 		setIsFetchedResult(false);
 		try {
 			resetStates();
@@ -66,43 +141,23 @@ const TokenAvailability = () => {
 					id: "token-empty",
 					description: "Please enter token name!",
 				});
-				setIsCheckingAvailability(false);
+				setIsFindingToken(false);
 				return;
 			}
 
-			const tokenListProvider = new TokenListProvider();
+			console.log({ radioValue });
 
-			const tokens = await tokenListProvider.resolve();
-
-			const tokensFilteredByNetwork = tokens
-				.filterByClusterSlug(solanaNetwork)
-				.getList();
-
-			const similarTokens: TokenInfo[] = [];
-
-			tokensFilteredByNetwork.forEach((token) => {
-				if (
-					convertToLowerCase(token.name) === tokenName ||
-					convertToLowerCase(token.symbol) === tokenName
-				) {
-					setTokenAlreadyExist(token);
-				} else if (
-					convertToLowerCase(token.name).includes(tokenName) ||
-					convertToLowerCase(token.symbol).includes(tokenName)
-				) {
-					similarTokens.push(token);
-				}
-			});
-
-			if (similarTokens.length > 0) {
-				setSimilarTokens(similarTokens);
+			if (radioValue === "legacy") {
+				await handleLegacySearch(tokenName);
+			} else {
+				await handleTopSearch(tokenName);
 			}
 
 			setIsFetchedResult(true);
 		} catch (error) {
 			console.error("searchHandler =>", error);
 		}
-		setIsCheckingAvailability(false);
+		setIsFindingToken(false);
 	};
 
 	return (
@@ -126,25 +181,45 @@ const TokenAvailability = () => {
 						setIsFetchedResult(false);
 						setSearchValue(e.target.value);
 					}}
-					placeholder="Search for a token name to check availability"
+					placeholder="Search for a token name or symbol"
 					focusBorderColor="purple.400"
 				/>
+				<RadioGroup
+					defaultValue="legacy"
+					colorScheme="purple"
+					textAlign="left"
+					onChange={(e) => {
+						setRadioValue(e);
+					}}
+				>
+					<Stack
+						spacing={5}
+						direction={{ base: "column", sm: "row" }}
+					>
+						<Radio value="legacy">
+							Legacy Token List (Last Updated on 20th June 2022)
+						</Radio>
+						<Radio value="top">
+							Top Solana Tokens (Mainnet-Only)
+						</Radio>
+					</Stack>
+				</RadioGroup>
 				<Button
 					type="submit"
 					colorScheme="purple"
-					isLoading={isCheckingAvailability}
+					isLoading={isFindingToken}
 				>
-					Check Availability
+					Search Token
 				</Button>
 			</VStack>
 
-			{isCheckingAvailability && (
+			{isFindingToken && (
 				<Center py={8}>
 					<Spinner size="lg" />
 				</Center>
 			)}
 
-			{!isCheckingAvailability &&
+			{!isFindingToken &&
 				isFetchedResult &&
 				(tokenAlreadyExist ? (
 					<VStack
@@ -168,7 +243,7 @@ const TokenAvailability = () => {
 					</Text>
 				))}
 
-			{!isCheckingAvailability &&
+			{!isFindingToken &&
 				isFetchedResult &&
 				similarTokens &&
 				similarTokens?.length !== 0 && (

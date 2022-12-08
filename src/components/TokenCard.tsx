@@ -36,67 +36,63 @@ const TokenCard = ({ tokenDetails }: { tokenDetails: TokenInfo }) => {
 					</Text>
 					<Text>{tokenDetails.symbol}</Text>
 				</HStack>
-				<HStack
-					justifyContent="space-between"
-					w="full"
-					align="flex-start"
-				>
-					<Text color="purple.300" fontWeight="medium">
-						Decimals
-					</Text>
-					<Text>{tokenDetails.decimals}</Text>
-				</HStack>
-				<HStack
-					justifyContent="space-between"
-					w="full"
-					align="flex-start"
-				>
-					<Text color="purple.300" fontWeight="medium">
-						Chain Id
-					</Text>
-					<Text>{tokenDetails.chainId}</Text>
-				</HStack>
-				<HStack justifyContent="space-between" w="full">
-					<Text color="purple.300" fontWeight="medium">
-						Logo
-					</Text>
-					<Image
-						src={tokenDetails.logoURI}
-						alt={tokenDetails.name}
-						w={42}
-						fallback={
-							<Center>
-								<Spinner />
-							</Center>
-						}
-					/>
-				</HStack>
-				<HStack justifyContent="space-between" w="full">
-					<Text color="purple.300" fontWeight="medium">
-						Tags
-					</Text>
-					<Flex
-						wrap="wrap"
-						justifyContent="flex-end"
-						alignItems="center"
+				{tokenDetails.decimals && (
+					<HStack
+						justifyContent="space-between"
+						w="full"
+						align="flex-start"
 					>
-						{tokenDetails?.tags?.map((tag) => {
-							return (
-								<Box
-									key={tag}
-									bgColor="purple.400"
-									px={3}
-									py={1}
-									rounded="xl"
-									fontWeight="medium"
-									m={2}
-								>
-									{tag}
-								</Box>
-							);
-						})}
-					</Flex>
-				</HStack>
+						<Text color="purple.300" fontWeight="medium">
+							Decimals
+						</Text>
+						<Text>{tokenDetails.decimals}</Text>
+					</HStack>
+				)}
+				{tokenDetails.logoURI && (
+					<HStack justifyContent="space-between" w="full">
+						<Text color="purple.300" fontWeight="medium">
+							Logo
+						</Text>
+						<Image
+							src={tokenDetails.logoURI}
+							alt={tokenDetails.name}
+							w={42}
+							fallback={
+								<Center>
+									<Spinner />
+								</Center>
+							}
+						/>
+					</HStack>
+				)}
+				{tokenDetails?.tags && (
+					<HStack justifyContent="space-between" w="full">
+						<Text color="purple.300" fontWeight="medium">
+							Tags
+						</Text>
+						<Flex
+							wrap="wrap"
+							justifyContent="flex-end"
+							alignItems="center"
+						>
+							{tokenDetails?.tags?.map((tag) => {
+								return (
+									<Box
+										key={tag}
+										bgColor="purple.400"
+										px={3}
+										py={1}
+										rounded="xl"
+										fontWeight="medium"
+										m={2}
+									>
+										{tag}
+									</Box>
+								);
+							})}
+						</Flex>
+					</HStack>
+				)}
 			</VStack>
 		</Box>
 	);

@@ -9,15 +9,15 @@ import {
 	useBreakpointValue,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
-import TokenAvailability from "../components/Home/TokenAvailability";
+import FindTokens from "../components/Home/FindTokens";
 import { AiOutlineSearch } from "react-icons/ai";
 
 const Home = () => {
 	const tabList = useMemo(() => {
 		return [
 			{
-				name: "Check Token Availability",
-				component: <TokenAvailability />,
+				name: "Find Tokens",
+				component: <FindTokens />,
 				icon: <AiOutlineSearch />,
 			},
 		];
